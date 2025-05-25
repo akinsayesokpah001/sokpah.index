@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sokpah Family Members</title>
+  <style>
+    body { font-family: Arial; background: #f5f5f5; padding: 20px; }
+    .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px #aaa; }
+    input, textarea, button { width: 100%; margin-top: 10px; padding: 10px; }
+    .member-card { background: #e8ffe8; padding: 15px; margin-top: 15px; border-radius: 10px; }
+    img { max-width: 100px; border-radius: 8px; display: block; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Sokpah Family Members</h2>
+    <form id="familyForm">
+      <input type="text" id="name" placeholder="Full Name" required />
+      <input type="text" id="phone" placeholder="Phone Number" required />
+      <textarea id="address" placeholder="Address" required></textarea>
+      <input type="file" id="photo" accept="image/*" required />
+      <input type="text" id="children" placeholder="Children Names (comma-separated)" />
+      <input type="text" id="childrenDOB" placeholder="DOBs (comma-separated, same order)" />
+      <button type="submit">Add Family Member</button>
+    </form>
+
+    <h3>Family Members List</h3>
+    <div id="membersList"></div>
+  </div>
+
+  <script>
+    const form = document.getElementById('familyForm');
+    const membersList = document.getElementById('membersList');
+
+    // Load existing data from localStorage
+    const familyData = JSON.parse(localStorage.getItem('sokpah_family')) || [];
+
+    function renderMembers() {
+      membersList.innerHTML = '';
+      familyData.forEach(member => {
+        const div = document.createElement('div');
+        div.className = 'member-card';
+        div.innerHTML = `
+          <img src="${member.photo}" />
+          <h4>${member.name}</h4>
+          <p><strong>Phone:</strong> ${member.phone}</p>
+          <p><strong>Address:</strong> ${member.address}</p>
+          <p><strong>Children:</strong> ${member.children.map((c, i) => `${c} (${member.childrenDOB[i] || ''})`).join(", ")}</p>
+        `;
+        membersList.appendChild(div);
+      });
+    }
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const name = document.getElementById('name').value;
+      const phone = document.getElementById('phone').value;
+      const address = document.getElementById('address').value;
+      const photoFile = document.getElementById('photo').files[0];
+      const children = document.getElementById('children').value.split(',').map(s => s.trim());
+      const childrenDOB = document.getElementById('childrenDOB').value.split(',').map(s => s.trim());
+
+      const reader = new FileReader();
+      reader.onload = function() {
+        const photoDataURL = reader.result;
+        const newMember = { name, phone, address, photo: photoDataURL, children, childrenDOB };
+        familyData.push(newMember);
+        localStorage.setItem('sokpah_family', JSON.stringify(familyData));
+        renderMembers();
+        form.reset();
+        alert("Family member added!");
+      };
+      if (photoFile) {
+        reader.readAsDataURL(photoFile);
+      }
+    });
+
+    // Initial render
+    renderMembers();
+  </script>
+</body>
+</html>
